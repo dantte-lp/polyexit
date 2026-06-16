@@ -13,6 +13,7 @@ Ansible-managed fleet of OpenConnect (`ocserv`) VPN exit nodes with per-country 
 
 | # | Section                                                                   | Read when                                            |
 |---|---------------------------------------------------------------------------|------------------------------------------------------|
+| 0 | [How it all fits](en/00-how-it-works.md)                                  | **start here** — worked example with real configs    |
 | 1 | [Overview](en/01-overview.md)                                             | first contact — what the project does and why        |
 | 2 | [Architecture](en/02-architecture.md)                                     | needing a mental model of data and control planes    |
 | 3 | [Environment](en/03-environment.md)                                       | provisioning a new host — OS, kernel, packages       |
@@ -29,6 +30,7 @@ Ansible-managed fleet of OpenConnect (`ocserv`) VPN exit nodes with per-country 
 
 | # | Раздел                                                                    | Когда читать                                         |
 |---|---------------------------------------------------------------------------|------------------------------------------------------|
+| 0 | [Как всё стыкуется](ru/00-how-it-works.md)                                | **начни тут** — рабочий пример с реальными конфигами |
 | 1 | [Обзор](ru/01-overview.md)                                                | первое знакомство с проектом                         |
 | 2 | [Архитектура](ru/02-architecture.md)                                      | модель data plane и control plane                    |
 | 3 | [Окружение](ru/03-environment.md)                                         | provisioning нового хоста                            |

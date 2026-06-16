@@ -24,12 +24,12 @@ all:
         exits-world:
           hosts:
             dev-03:
-              ansible_host: 82.26.171.163
+              ansible_host: 192.0.2.3
               ansible_connection: local
         exits-country-local:
           hosts:
             dev-04:
-              ansible_host: 91.218.113.232
+              ansible_host: 198.51.100.4
               ansible_connection: ssh
             dev-05:
               ansible_host: "{{ public_v4 }}"
@@ -74,15 +74,15 @@ base_packages:
 
 ```yaml
 # Identity + reachability
-public_v4: 91.218.113.232          # собственный публичный v4 узла
-public_v6: "2a03:e2c0:5acd::2"     # собственный публичный v6 узла (или "" если v4-only)
+public_v4: 198.51.100.4          # собственный публичный v4 узла
+public_v6: "2001:db8:ru::2"     # собственный публичный v6 узла (или "" если v4-only)
 site: ru                           # короткий слаг
 role: country-exit                 # world-default | country-exit
 site_octet: 4                      # 1-байтный детерминированный ключ — от него производится много переменных
 
 # Собственные uplinks узла
 host_v4_uplink: ens1
-host_v4_gw: 91.218.113.129
+host_v4_gw: 198.51.100.1
 host_v6_uplink: sit1
 
 # VRF default exit — куда VPN-клиенты в vrf-vpn уходят для non-country трафика

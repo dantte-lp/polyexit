@@ -52,7 +52,7 @@ Edit [`inventory/hosts.yml`](../../inventory/hosts.yml):
 exits-country-local:
   hosts:
     dev-05:
-      ansible_host: 213.230.X.X        # ← real UZ VPS IP
+      ansible_host: 203.0.113.5        # ← real UZ VPS IP
       ansible_user: root
       ansible_port: 22
       ansible_connection: ssh
@@ -61,10 +61,10 @@ exits-country-local:
 Edit [`inventory/host_vars/dev-05.yml`](../../inventory/host_vars/dev-05.yml) — most fields are already filled with UZ placeholders. Update the four `TBD` lines:
 
 ```yaml
-public_v4: 213.230.X.X
+public_v4: 203.0.113.5
 public_v6: ""                          # UZ commercial v6 is poor — leave empty
 host_v4_uplink: ens1                   # check with `ip route show default`
-host_v4_gw: 213.230.X.1                # the provider's GW
+host_v4_gw: 203.0.113.1                # the provider's GW
 ```
 
 ## Step 3 — controller can reach it
@@ -108,7 +108,7 @@ PostUp = ip -6 route add fdf3:bb42:9fc6:ffff::4/128 dev wg0
 PublicKey = <dev-03 pubkey>
 PresharedKey = <psk>
 AllowedIPs = 0.0.0.0/0, ::/0
-Endpoint = 82.26.171.163:31518
+Endpoint = 192.0.2.3:31518
 PersistentKeepalive = 25
 ```
 
@@ -193,7 +193,7 @@ Connect to `news.infra4.dev` or `docs.infra4.dev` (Cloudflare multi-A round-robi
 # from the VPN client
 curl -4 ifconfig.io                          # expect Finland IP (dev-03 default exit)
 curl -4 -H "Host: ifconfig.io" 5.255.255.77  # this RU IP — expect Moscow exit IP
-curl -4 -H "Host: ifconfig.io" 213.230.0.1   # UZ IP — expect Tashkent exit IP
+curl -4 -H "Host: ifconfig.io" 203.0.113.1   # UZ IP — expect Tashkent exit IP
 ```
 
 `ifconfig.io` returns the source IP — you can directly read which exit the traffic took.

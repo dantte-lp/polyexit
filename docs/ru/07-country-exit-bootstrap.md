@@ -52,7 +52,7 @@ dnf install -y python3            # требуется Ansible'у для fallbac
 exits-country-local:
   hosts:
     dev-05:
-      ansible_host: 213.230.X.X        # ← реальный IP UZ VPS
+      ansible_host: 203.0.113.5        # ← реальный IP UZ VPS
       ansible_user: root
       ansible_port: 22
       ansible_connection: ssh
@@ -61,10 +61,10 @@ exits-country-local:
 Правь [`inventory/host_vars/dev-05.yml`](../../inventory/host_vars/dev-05.yml) — большинство полей уже заполнено UZ-плейсхолдерами. Обнови четыре строки `TBD`:
 
 ```yaml
-public_v4: 213.230.X.X
+public_v4: 203.0.113.5
 public_v6: ""                          # коммерческий v6 в UZ слабый — оставь пустым
 host_v4_uplink: ens1                   # проверь через `ip route show default`
-host_v4_gw: 213.230.X.1                # GW провайдера
+host_v4_gw: 203.0.113.1                # GW провайдера
 ```
 
 ## Шаг 3 — контроллер достукивается
@@ -108,7 +108,7 @@ PostUp = ip -6 route add fdf3:bb42:9fc6:ffff::4/128 dev wg0
 PublicKey = <dev-03 pubkey>
 PresharedKey = <psk>
 AllowedIPs = 0.0.0.0/0, ::/0
-Endpoint = 82.26.171.163:31518
+Endpoint = 192.0.2.3:31518
 PersistentKeepalive = 25
 ```
 
@@ -193,7 +193,7 @@ ip -4 route show table 10 | grep wg103 | head  # UZ-префиксы через 
 # с VPN-клиента
 curl -4 ifconfig.io                          # жди Finland IP (default exit dev-03)
 curl -4 -H "Host: ifconfig.io" 5.255.255.77  # этот RU IP — жди exit IP Москвы
-curl -4 -H "Host: ifconfig.io" 213.230.0.1   # UZ IP — жди exit IP Ташкента
+curl -4 -H "Host: ifconfig.io" 203.0.113.1   # UZ IP — жди exit IP Ташкента
 ```
 
 `ifconfig.io` возвращает source IP — напрямую читаешь, какой exit взял трафик.
