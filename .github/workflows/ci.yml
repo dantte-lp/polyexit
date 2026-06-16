@@ -1,0 +1,61 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  yamllint:
+    name: yamllint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install yamllint
+        run: pip install yamllint
+      - name: Run yamllint
+        run: yamllint -d "{extends: default, rules: {line-length: {max: 200}, truthy: {check-keys: false}, comments: {min-spaces-from-content: 1}}}" .
+
+  ansible-lint:
+    name: ansible-lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install ansible + lint
+        run: |
+          pip install ansible-core ansible-lint
+          ansible-galaxy collection install ansible.posix community.general
+      - name: Run ansible-lint
+        run: ansible-lint playbooks/ roles/
+
+  syntax-check:
+    name: ansible-playbook --syntax-check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install ansible
+        run: |
+          pip install ansible-core
+          ansible-galaxy collection install ansible.posix community.general
+      - name: Syntax check
+        run: ansible-playbook --syntax-check playbooks/site.yml playbooks/manage-user.yml
+
+  shellcheck:
+    name: shellcheck (bin/)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run shellcheck
+        uses: ludeeus/action-shellcheck@master
+        with:
+          scandir: ./bin

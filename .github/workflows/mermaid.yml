@@ -1,0 +1,60 @@
+name: Mermaid syntax
+
+on:
+  push:
+    branches: [main]
+    paths: ['docs/**/*.md']
+  pull_request:
+    branches: [main]
+    paths: ['docs/**/*.md']
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate mermaid diagrams
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install mermaid-cli
+        run: npm install -g @mermaid-js/mermaid-cli
+
+      - name: Install Chrome system deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libnspr4 libnss3 libxkbcommon0 libxcomposite1 libxdamage1 libxrandr2 libgbm1 libasound2t64
+
+      - name: Configure puppeteer for headless container
+        run: |
+          cat > /tmp/puppet.json <<'JSON'
+          {"args": ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"]}
+          JSON
+
+      - name: Extract + validate every ```mermaid block
+        run: |
+          set -e
+          mkdir -p /tmp/mmd
+          find docs -name '*.md' | while read f; do
+            base=$(echo "$f" | tr / _)
+            awk -v out="/tmp/mmd/${base}" '
+              /^```mermaid/ {n++; fn=out "_" n ".mmd"; in_block=1; next}
+              in_block && /^```$/ {in_block=0; close(fn); next}
+              in_block {print > fn}
+            ' "$f"
+          done
+          fail=0
+          for f in /tmp/mmd/*.mmd; do
+            [ -e "$f" ] || continue
+            if ! mmdc -i "$f" -o "/tmp/${f##*/}.svg" --puppeteerConfigFile /tmp/puppet.json --quiet 2>/tmp/err; then
+              echo "FAIL: $f"
+              cat /tmp/err
+              fail=$((fail + 1))
+            fi
+          done
+          [ $fail -eq 0 ] || exit 1

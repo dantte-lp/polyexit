@@ -1,0 +1,15 @@
+# GitHub Code Owners — auto-assign reviewer for changed paths.
+# Syntax: https://docs.github.com/en/repositories/managing-your-repositories-settings-and-features/customizing-your-repository/about-code-owners
+
+* @dantte-lp
+
+# Role / inventory changes that affect data plane — owner must review
+roles/vrf-vpn/      @dantte-lp
+roles/nft-vpn/      @dantte-lp
+roles/ocserv/       @dantte-lp
+roles/georoute/     @dantte-lp
+inventory/          @dantte-lp
+
+# Documentation — owner review for canonical EN; RU translations follow EN
+docs/en/            @dantte-lp
+docs/ru/            @dantte-lp
