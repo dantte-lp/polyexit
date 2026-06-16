@@ -41,13 +41,13 @@ flowchart LR
     subgraph RU["dev-04 — Moscow — RU exit"]
         d04_ocserv[ocserv]
         d04_vrf[(vrf-vpn / table 10)]
-        d04_geo[georoute@ru]
+        d04_geo["georoute@ru"]
         d04_uplink[/sit1 + ens1\]
     end
     subgraph UZ["dev-05 — Tashkent — UZ exit"]
         d05_ocserv[ocserv]
         d05_vrf[(vrf-vpn / table 10)]
-        d05_geo[georoute@uz]
+        d05_geo["georoute@uz"]
         d05_uplink[/ens1\]
     end
 
