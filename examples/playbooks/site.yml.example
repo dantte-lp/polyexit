@@ -1,0 +1,23 @@
+---
+# Full apply across all exit nodes. Idempotent — dry-run with
+#   ansible-playbook playbooks/site.yml --check --diff
+# to see what would change.
+
+- name: Configure exit nodes
+  hosts: exits
+  gather_facts: true
+  roles:
+    - role: common
+      tags: [common]
+    - role: vrf-vpn
+      tags: [vrf-vpn]
+    - role: nft-vpn
+      tags: [nft-vpn]
+    - role: secure-dns
+      tags: [secure-dns]
+      when: secure_dns_enabled | bool
+    - role: ocserv
+      tags: [ocserv]
+    - role: georoute
+      tags: [georoute]
+      when: country is defined

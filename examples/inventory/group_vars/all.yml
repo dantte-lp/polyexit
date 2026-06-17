@@ -1,0 +1,67 @@
+# =====================================================================
+# Shared across all exit nodes
+# =====================================================================
+
+# BGP fabric
+bgp_asn: 64512
+bgp_md5_secret: "{{ vault_bgp_md5 | default('') }}"
+
+# IPv6 ULA prefix (RFC 4193) — both sites share a /48
+ula_prefix: "fdf3:bb42:9fc6::/48"
+ula_router_id_v6_prefix: "fdf3:bb42:9fc6:ff00::"
+
+# Per-site /64 inside the ULA — site numbered to match the v4 third octet
+# i.e. dev-03 → fdf3:bb42:9fc6:3::/64 ; dev-04 → fdf3:bb42:9fc6:4::/64
+
+# ocserv common knobs
+ocserv:
+  max_clients: 128
+  max_same_clients: 10
+  # dpd 90s is upstream default. We raised 60 → 90 — Wi-Fi blips up to 90s
+  # no longer terminate the session. Mobile devices use mobile_dpd.
+  dpd: 90
+  # 1800s = upstream default for mobile. Was 300s = aggressive battery drain
+  # AND aggressive session kill (5min sleep → expired).
+  mobile_dpd: 1800
+  keepalive: 600
+  # 0 = disabled. We rely on dpd/mobile_dpd to detect dead peers. Disabling
+  # idle-timeout stops phones from getting expired after 10/15 min of sleep
+  # — the chronic disconnect symptom.
+  idle_timeout: 0
+  mobile_idle_timeout: 0
+  rekey_time: 172800
+  default_route: true
+  no_routes:
+    - "192.168.0.0/255.255.0.0"
+    - "10.0.0.0/255.0.0.0"
+    - "172.16.0.0/255.240.0.0"
+  tls_priorities: "NORMAL:%SERVER_PRECEDENCE:%COMPAT:-RSA:-VERS-SSL3.0:-ARCFOUR-128:-VERS-TLS1.0:-VERS-TLS1.1"
+
+# Default-route table id for the VPN VRF
+vrf_vpn_table: 10
+vrf_vpn_name: vrf-vpn
+
+# DNS service-IP last octet — 53 is mnemonic (DNS port).
+# When secure-dns is enabled on a host, Pi-hole binds here.
+dns_service_octet: 53
+
+# Container subnet for the secure-dns podman bridge (consistent across hosts)
+secure_dns_bridge: 172.20.0.0/24
+secure_dns_pihole_ip: 172.20.0.20
+secure_dns_dnscrypt_ip: 172.20.0.10
+
+# Package list (EL10)
+base_packages:
+  - nftables
+  - firewalld
+  - iproute
+  - iproute-tc
+  - socat
+  - bind-utils
+  - tcpdump
+  - conntrack-tools
+  - jq
+  - git
+  - vim
+  - bash-completion
+  - chrony

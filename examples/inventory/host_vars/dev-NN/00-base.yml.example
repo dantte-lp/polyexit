@@ -1,0 +1,72 @@
+# dev-03 (Finland) — world default exit
+site: fi
+role: world-default
+
+# Extra loopback addresses installed by infra-loopback.service.
+# 10.255.255.1/32 = BGP update-source for the Mikrotik eBGP peer
+# (10.255.255.2). Originally lived on wg0; pinned to lo so a wg0 flap no
+# longer causes bgpd to spin on `can't bind socket for 10.255.255.1`.
+extra_loopback_v4:
+  - "10.255.255.1/32"
+
+# Public reachability + host's own uplinks
+public_v4: 192.0.2.3
+public_v6: "2001:db8:fi::2"
+host_v4_uplink: ens1
+host_v4_gw: 192.0.2.1
+host_v6_uplink: r64stk
+
+# VRF default exit. dev-03 IS the world-default exit, so its VPN clients
+# leave through the host's own uplinks. RU-bound prefixes are sent over
+# wg102 to dev-04 (via BGP-learned routes installed in table 10).
+v4_uplink_iface: ens1
+v4_uplink_gw: 192.0.2.1
+v6_uplink_iface: r64stk
+v6_uplink_gw: "2001:db8:fi::1"
+
+# WG interface name to the sibling site
+wg_sibling_iface: wg102
+
+# VPN pools
+site_octet: 3                                # → 100.64.3.0/24, fdf3:bb42:9fc6:3::/64
+v4_pool_cidr: 100.64.3.0/24
+v4_pool_netmask: 255.255.255.0
+v4_pool_network: 100.64.3.0
+v4_pool_gw: 100.64.3.1                       # ocserv server-side endpoint
+v6_pool_cidr: "fdf3:bb42:9fc6:3::/64"
+v6_pool_gw: "fdf3:bb42:9fc6:3::1"
+
+# Service-IPs (separate from gateway to avoid lo/vpns* collision)
+dns_service_v4: 100.64.3.53
+dns_service_v6: "fdf3:bb42:9fc6:3::53"
+
+# BGP
+bgp_router_id_v4: 10.255.0.3
+bgp_router_id_v6: "fdf3:bb42:9fc6:ff00::3"
+wg_peer_addr: 169.254.255.4                  # legacy var (unused)
+wg_local_addr: 169.254.255.3                 # legacy var (unused)
+
+# Sibling site for transit-return routes (must be installed in main FIB
+# so reply packets from our own uplink, after conntrack-reverse-NAT, find
+# their way back to the sibling host that owns the client pool).
+# On dev-03, BGP-MAIN-FIB community filter strips the BGP-learned sibling
+# pool, so we install it as a static via Ansible.
+sibling_v4_pool: 100.64.4.0/24
+sibling_v6_pool: "fdf3:bb42:9fc6:4::/64"
+wg_sibling_peer_v4: 169.254.255.1            # dev-04 wg-/31 peer endpoint
+wg_sibling_peer_v6: "fe80::4"                # dev-04 wg link-local v6
+
+# Feature flags
+secure_dns_enabled: true                     # Pi-hole + dnscrypt + socat v6 proxy
+push_dns_resolvers:
+  - "{{ dns_service_v4 }}"
+  - "{{ dns_service_v6 }}"
+
+# ocserv vhosts
+ocserv_vhosts:
+  - name: docs.infra4.dev                    # default vhost (in main config)
+    is_default: true
+    user_profile: docs.xml
+  - name: news.infra4.dev                    # geo-balanced via CF
+    is_default: false
+    user_profile: news.xml

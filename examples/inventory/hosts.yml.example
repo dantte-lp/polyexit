@@ -1,0 +1,27 @@
+all:
+  children:
+    exits:
+      children:
+        # World-default exits (FI, EU, US, …) — VPN client traffic that has
+        # no country override leaves through their own uplink.
+        exits-world:
+          hosts:
+            dev-03:
+              ansible_host: 192.0.2.3
+              ansible_user: root
+              ansible_connection: local      # we run from dev-03 itself
+
+        # Country-exit nodes (RU, UZ, KZ, …) — owns one country and bounces
+        # everything else through the world-default sibling via WG transit.
+        exits-country-local:
+          hosts:
+            dev-04:
+              ansible_host: 198.51.100.4
+              ansible_user: root
+              ansible_port: 22
+              ansible_connection: ssh
+            dev-05:
+              ansible_host: "{{ public_v4 }}"   # placeholder until UZ VPS picked
+              ansible_user: root
+              ansible_port: 22
+              ansible_connection: ssh

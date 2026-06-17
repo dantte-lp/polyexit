@@ -1,0 +1,13 @@
+# Encrypt with: ansible-vault encrypt inventory/group_vars/vault.yml
+# Decrypt:      ansible-vault decrypt inventory/group_vars/vault.yml
+#
+# When in place, rename to vault.yml. The vault password is read from
+# ~/.ansible_vault_pass (see ansible.cfg). Any var consumed in templates
+# is namespaced `vault_*` so it is obvious where it came from.
+
+vault_cf_api_token: "REPLACE_ME_cloudflare_api_token"
+vault_pihole_web_password: "REPLACE_ME_pihole_web_admin_password"
+vault_bgp_md5: "REPLACE_ME_bgp_md5_secret_string"
+
+# ocpasswd is bytes; recommend a separate `files/ocpasswd` distributed via
+# copy task with mode 0600. Do not bake it into a templated string.
