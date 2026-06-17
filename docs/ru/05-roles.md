@@ -162,6 +162,20 @@ exit 0
 
 Почему `table 10` явно указан на v6 add: ocserv добавляет маршрут через `SIOCADDRT`, который по умолчанию ставит в `RT_TABLE_MAIN` независимо от VRF master'а slave-интерфейса — а v6 reply-путь нужен в table 10 vrf-vpn.
 
+### Compat-директивы, которые везёт шаблон
+
+Шаблон по умолчанию везёт эти legacy-compat директивы включёнными, держим их потому, что в продакшен-клиентах всё ещё попадаются старые устройства, производные от AnyConnect:
+
+| Директива                       | По умолчанию | Когда выключать                                                         |
+|---------------------------------|--------------|-------------------------------------------------------------------------|
+| `cisco-client-compat = true`    | on           | Все клиенты — OpenConnect ≥ 8.0; AnyConnect Mobile ≥ 4.x                |
+| `cisco-svc-client-compat = true`| on           | То же — deprecated в новых сборках ocserv; смотри warnings `ocserv -t`  |
+| `dtls-legacy = true`            | on           | Все клиенты договариваются о DTLS 1.2 (`gnutls-cli --priority=NORMAL ...`) |
+| `compression = false`           | off          | Держать выключенным — DTLS уже сжимает; риски класса CRIME              |
+| `try-mtu-discovery = true`      | on           | Поставить `false` + запинить `mtu`, когда PMTUD через границу VRF ведёт себя плохо |
+
+Аудит достижимых клиентов — через `occtl show users`; колонка `dtls-cipher` показывает, каким сессиям всё ещё нужны DTLS-legacy пути.
+
 Справка: [мануал `ocserv`](https://ocserv.openconnect-vpn.net/ocserv.8.html), [`ocserv` sample config](https://gitlab.com/openconnect/ocserv/-/raw/master/doc/sample.config).
 
 ## `georoute`

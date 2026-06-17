@@ -111,6 +111,28 @@ The `secure-dns` role is opt-in (`secure_dns_enabled: true`). Hosts without it p
 
 See [`roles/nft-vpn/templates/vpn_dnat.nft.j2`](../../roles/nft-vpn/templates/vpn_dnat.nft.j2) for the v4 DNAT and [`roles/vrf-vpn/templates/vrf-vpn.service.j2`](../../roles/vrf-vpn/templates/vrf-vpn.service.j2) for the v6 rule.
 
+## nftables priority stack
+
+Each base chain that hooks the same netfilter point must have a distinct priority — chains at the same hook with identical priority evaluate in undefined order (per [nftables wiki — Configuring chains](https://wiki.nftables.org/wiki-nftables/index.php/Configuring_chains)). The fleet uses explicit numeric priorities to keep the stack deterministic and to make it obvious to a reader at which step a packet gets touched.
+
+| Hook | Priority | Table / chain                          | Job                                               |
+|------|----------|----------------------------------------|---------------------------------------------------|
+| `prerouting` | -200 | (kernel raw/conntrack)             | conntrack lookup                                  |
+| `prerouting` | -155 | `inet pbr / prerouting`            | set `meta mark` when dst ∈ `<cc>_v{4,6}`         |
+| `prerouting` | -101 | `inet vpn_dnat / prerouting`        | DNAT VPN-client DNS to Pi-hole (when `secure_dns_enabled`) |
+| `prerouting` | -100 | `inet netavark / prerouting`        | container port-forward DNAT                       |
+| `prerouting` |  +10 | `inet firewalld / nat_PRE`         | zone-aware destination NAT                        |
+| `forward`    | -150 | `inet mss_clamp / forward`         | clamp TCP MSS 1300/1240 on `wg_sibling_iface`     |
+| `forward`    |  +10 | `inet firewalld / filter_FORWARD`  | zone-aware FORWARD policy                         |
+| `output`     | -150 | `inet pbr / output`                | mark locally-generated packets (mirror prerouting) |
+| `postrouting`| +100 | `inet firewalld / nat_POST`        | zone-aware MASQUERADE / SNAT                      |
+
+`pbr.prerouting` deliberately fires at `-155` (one step before `mangle = -150`) so the mark is in place before any downstream chain looks at the packet. `mss_clamp` stays at the canonical `mangle = -150` on the forward hook — no other base chain in this fleet shares that hook at that priority, so the explicit number is for documentation and future-proofing.
+
+`vpn_dnat` at `-101` fires one tick before netavark's `-100`. Both match on `iif`, but netavark's gate `fib daddr type local` is false from inside `vrf-vpn`, so our DNAT must be the one that catches the cross-VRF DNS request.
+
+Reference: [netfilter hooks and priorities](https://wiki.nftables.org/wiki-nftables/index.php/Netfilter_hooks).
+
 ## Routing-table layout
 
 | Table   | Purpose                                                              | Selected by                                  |
